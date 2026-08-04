@@ -77,7 +77,17 @@ function install_john() {
     fi
     cat > "${Z1_BIN}/john" << WRAPPER
 #!/usr/bin/env bash
-cd "${RUN_DIR}" && exec ./john "\$@"
+_owd="\$PWD"
+cd "${RUN_DIR}" || exit 1
+args=()
+for a in "\$@"; do
+    case "\$a" in
+        -*) args+=("\$a") ;;
+        /*) args+=("\$a") ;;
+        *)  args+=("\${_owd}/\$a") ;;
+    esac
+done
+./john "\${args[@]}"
 WRAPPER
     chmod +x "${Z1_BIN}/john"
     local f base
@@ -87,23 +97,44 @@ WRAPPER
         if [[ "$f" == *.py ]]; then
             cat > "${Z1_BIN}/${base%.py}" << WRAPPER
 #!/usr/bin/env bash
-cd "${RUN_DIR}" && exec python3 "$f" "\$@"
+_owd="\$PWD"
+cd "${RUN_DIR}" || exit 1
+args=()
+for a in "\$@"; do
+    case "\$a" in
+        -*) args+=("\$a") ;;
+        /*) args+=("\$a") ;;
+        *)  args+=("\${_owd}/\$a") ;;
+    esac
+done
+python3 "$f" "\${args[@]}"
 WRAPPER
             chmod +x "${Z1_BIN}/${base%.py}"
         elif [[ -x "$f" ]]; then
             cat > "${Z1_BIN}/$base" << WRAPPER
 #!/usr/bin/env bash
-cd "${RUN_DIR}" && exec "$f" "\$@"
+_owd="\$PWD"
+cd "${RUN_DIR}" || exit 1
+args=()
+for a in "\$@"; do
+    case "\$a" in
+        -*) args+=("\$a") ;;
+        /*) args+=("\$a") ;;
+        *)  args+=("\${_owd}/\$a") ;;
+    esac
+done
+"$f" "\${args[@]}"
 WRAPPER
             chmod +x "${Z1_BIN}/$base"
         fi
     done
     if "${Z1_BIN}/john" --help >/dev/null 2>&1; then
-        _ok "john: installed jumbo (latest from source) â†’ ${Z1_BIN}/john"
+        _ok "john: installed jumbo (latest from source) Ã¢â€ â€™ ${Z1_BIN}/john"
     else
         _err "john: build finished but binary not found in ${Z1_BIN}"
     fi
 }
+
 
 function install_impacket()        { install_pip impacket; }
 function install_certipy()         { install_pip certipy-ad; }
