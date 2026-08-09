@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
-# Author: z1rov
-
-alias anvil='cd /anvil'
-alias projects='cd /anvil/projects'
-alias loot='cd /anvil/loot'
+alias workspace='cd "${Z1_WORKSPACE:-$HOME/workspace}"'
+alias projects='cd "${Z1_WORKSPACE:-$HOME/workspace}/projects"'
+alias loot='cd "${Z1_WORKSPACE:-$HOME/workspace}/loot"'
 alias wordlists='cd /usr/share/wordlists'
 alias rules='cd /usr/share/rules'
 alias tools='cd /opt/tools'
@@ -21,5 +19,4 @@ alias grep='grep --color=auto'
 alias cls='clear'
 alias z1-tools='ls /opt/tools/bin/'
 export PS1='\[\033[0;36m\][Z1:] \[\033[1;32m\]\w\[\033[0m\] # '
-export HOME=/root
-cd /anvil 2>/dev/null || cd /root
+cd "${Z1_WORKSPACE:-$HOME/workspace}" 2>/dev/null || cd "$HOME"

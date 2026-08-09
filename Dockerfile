@@ -1,10 +1,11 @@
-# Author: z1rov
-
 FROM debian:bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive \
     Z1_HOME=/z1 \
-    Z1_ANVIL=/anvil \
+    Z1_WORKSPACE=/workspace \
+    Z1_USER=z1user \
+    Z1_UID=1000 \
+    Z1_GID=1000 \
     TERM=xterm-256color \
     SHELL=/bin/bash \
     LANG=en_US.UTF-8 \
@@ -20,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     krb5-config libkrb5-dev libldap2-dev libsasl2-dev \
     samba-common-bin \
+    xvfb x11vnc fluxbox wireguard-tools \
     && locale-gen en_US.UTF-8 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -77,14 +79,14 @@ RUN chmod +x /opt/tools/bin/*
 COPY version/ /z1/version/
 
 COPY runtime/ /z1/runtime/
-COPY assets/zshrc-z1 /root/.zshrc
 ENV PATH="${PATH}:/root/.local/bin"
 
 RUN find /z1 -name "*.sh" -exec chmod +x {} \; && \
-    mkdir -p /anvil /opt/tools/bin /opt/tools/src /opt/tools/forja \
-             /usr/share/rules
+    mkdir -p /workspace /opt/tools/bin /opt/tools/src /opt/tools/forja \
+             /usr/share/rules /etc/wireguard && \
+    chmod 0777 /workspace
 
 RUN updatedb
 
-WORKDIR /anvil
+WORKDIR /workspace
 ENTRYPOINT ["/z1/runtime/init.sh"]
