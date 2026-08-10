@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# ./runtime/init.sh
 
 Z1_HOME="/z1"
 Z1_USER="${Z1_USER:-z1user}"
@@ -8,12 +9,21 @@ Z1_WORKSPACE="${Z1_WORKSPACE:-/workspace}"
 
 if getent group "${Z1_GID}" >/dev/null 2>&1; then
     Z1_GROUP=$(getent group "${Z1_GID}" | cut -d: -f1)
+    if [[ "${Z1_GROUP}" != "${Z1_USER}" ]]; then
+        groupmod -n "${Z1_USER}" "${Z1_GROUP}" 2>/dev/null || true
+        Z1_GROUP="${Z1_USER}"
+    fi
 else
     groupadd -g "${Z1_GID}" "${Z1_USER}"
     Z1_GROUP="${Z1_USER}"
 fi
 
-if ! id -u "${Z1_USER}" >/dev/null 2>&1; then
+if id -u "${Z1_USER}" >/dev/null 2>&1; then
+    :
+elif getent passwd "${Z1_UID}" >/dev/null 2>&1; then
+    EXISTING_USER=$(getent passwd "${Z1_UID}" | cut -d: -f1)
+    usermod -l "${Z1_USER}" -d "/home/${Z1_USER}" -m -g "${Z1_GID}" -s /bin/zsh "${EXISTING_USER}"
+else
     useradd -m -u "${Z1_UID}" -g "${Z1_GROUP}" -s /bin/zsh "${Z1_USER}"
 fi
 
@@ -22,6 +32,9 @@ echo "${Z1_USER} ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/${Z1_USER}"
 chmod 0440 "/etc/sudoers.d/${Z1_USER}"
 
 Z1_USER_HOME=$(getent passwd "${Z1_USER}" | cut -d: -f6)
+mkdir -p "${Z1_USER_HOME}"
+chown -R "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}"
+chmod -R 0777 "${Z1_USER_HOME}"
 
 export Z1_WORKSPACE
 if [[ -f "${Z1_HOME}/runtime/workspace.sh" ]]; then
@@ -44,6 +57,8 @@ if [[ -f "${Z1_HOME}/assets/aliases.sh" ]]; then
         echo "source \"${Z1_USER_HOME}/.z1-aliases.sh\"" >> "${Z1_USER_HOME}/.bashrc"
     chown "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}/.bashrc"
 fi
+
+chmod 0777 "${Z1_USER_HOME}"
 
 if [[ "${VNC_MODE:-0}" == "1" ]] && [[ -f "${Z1_HOME}/runtime/vnc.sh" ]]; then
     source "${Z1_HOME}/runtime/vnc.sh"
