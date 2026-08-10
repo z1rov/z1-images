@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     krb5-config libkrb5-dev libldap2-dev libsasl2-dev \
     samba-common-bin \
-    xvfb x11vnc fluxbox wireguard-tools \
+    wireguard-tools \
     && locale-gen en_US.UTF-8 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
