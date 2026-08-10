@@ -50,11 +50,11 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
     git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \
         ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 
-COPY install/common.sh /z1/install/common.sh
-RUN chmod +x /z1/install/common.sh
+COPY install/func.sh /z1/install/func.sh
+RUN chmod +x /z1/install/func.sh
 
-COPY install/p_binaries.sh /z1/install/p_binaries.sh
-RUN chmod +x /z1/install/p_binaries.sh && apt-get update && bash -c 'source /z1/install/common.sh && source /z1/install/p_binaries.sh && p_binaries' && apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY install/bin.sh /z1/install/bin.sh
+RUN chmod +x /z1/install/bin.sh && apt-get update && bash -c 'source /z1/install/func.sh && source /z1/install/bin.sh && _deploy' && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY assets/ /z1/assets/
 COPY assets/bin/ /opt/tools/bin/

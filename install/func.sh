@@ -13,30 +13,30 @@ PYTHON_VERSIONS="2.7.18 3.13.2"
 
 mkdir -p "${Z1_BIN}" "${Z1_SRC}" "${Z1_FORJA}"
 
-_ok()       { echo -e "  ${GREEN}[OK]${RESET}    ${DIM}$1${RESET}"; }
-_err()      { echo -e "  ${RED}[ERROR]${RESET} $1"; }
-_info()     { echo -e "  ${CYAN}[INFO]${RESET}  $1"; }
+_ok()       { echo -e "  ${GREEN}[+]${RESET} ${DIM}$1${RESET}"; }
+_err()      { echo -e "  ${RED}[-]${RESET} $1"; }
+_info()     { echo -e "  ${CYAN}[~]${RESET} $1"; }
 
-install_apt() {
+_apt() {
     apt-get install -y --no-install-recommends "$1" >/dev/null 2>&1 \
         && _ok "apt: $1" || _err "apt: $1"
 }
 
-install_pip() {
+_pip() {
     pip3 install -q --no-cache-dir --break-system-packages "$1" >/dev/null 2>&1 \
         && _ok "pip: $1" || _err "pip: $1"
 }
 
-install_go() {
-    go install "$2" >/dev/null 2>&1 || { _err "go:  $1"; return 1; }
+_go() {
+    go install "$2" >/dev/null 2>&1 || { _err "go: $1"; return 1; }
     local gobin="${GOPATH:-/root/go}/bin/$1"
     if [[ -f "${gobin}" ]]; then
         ln -sf "${gobin}" "${Z1_BIN}/$1"
     fi
-    _ok "go:  $1 → ${Z1_BIN}/$1"
+    _ok "go: $1 → ${Z1_BIN}/$1"
 }
 
-install_git() {
+_git() {
     local dest="${Z1_SRC}/$1"
     if [[ -d "${dest}" ]]; then
         _info "skip: $1 (already exists)"
@@ -46,7 +46,7 @@ install_git() {
         && _ok "git: $1 → ${dest}" || _err "git: $1"
 }
 
-install_gem() {
+_gem() {
     local gemset="$1" pkg="$2" version="${3:-}"
     source /usr/local/rvm/scripts/rvm
     rvm use "${Z1_RUBY_VERSION}@${gemset}" --create >/dev/null 2>&1
@@ -62,50 +62,67 @@ install_gem() {
     rvm use "${Z1_RUBY_VERSION}@default" >/dev/null 2>&1
 }
 
-install_pipx() {
+_pipx() {
     pipx install -q --system-site-packages "$2" >/dev/null 2>&1 \
         && _ok "pipx: $1" || _err "pipx: $1"
 }
 
-link_bin() {
+_link() {
     local name="$1" target="$2"
     if [[ -f "${target}" ]]; then
         ln -sf "${target}" "${Z1_BIN}/${name}"
         chmod +x "${target}" 2>/dev/null || true
         _ok "bin: ${name} → ${Z1_BIN}/${name}"
     else
-        _err "link_bin: ${target} does not exist"
+        _err "link: ${target} does not exist"
     fi
 }
 
-forja_get() {
+_forja() {
     local grupo="$1" url="$2" fname="${3:-$(basename "$url")}"
     local dest_dir="${Z1_FORJA}/${grupo}"
     mkdir -p "${dest_dir}"
-    curl -sL "${url}" -o "${dest_dir}/${fname}" \
+    curl -sfL "${url}" -o "${dest_dir}/${fname}" \
         && _ok "forja: ${grupo}/${fname}" || _err "forja: ${grupo}/${fname}"
 }
 
-venv_pip() {
+_gh_version() {
+    local repo="$1"
+    python3 - "${repo}" << 'PYEOF'
+import sys, json, urllib.request, ssl
+repo = sys.argv[1]
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
+req = urllib.request.Request(
+    f"https://api.github.com/repos/{repo}/releases/latest",
+    headers={"User-Agent": "curl/7.0"})
+with urllib.request.urlopen(req, context=ctx, timeout=15) as r:
+    data = json.load(r)
+print(data["tag_name"].lstrip("v"))
+PYEOF
+}
+
+_venv_pip() {
     local dest="$1"; shift
     "${dest}/venv/bin/pip" install -q --no-cache-dir "$@" 2>/dev/null \
         && _ok "pip: $*" || _err "pip: $*"
 }
 
-venv_pip2() {
+_venv_pip2() {
     local dest="$1"; shift
     "${dest}/venv/bin/pip" install -q --no-cache-dir "$@" 2>/dev/null
 }
 
-pyvenv2_setup() {
+_pyvenv2() {
     local name="$1" script="$2"
     local dest="${Z1_SRC}/${name}"
     if [[ ! -d "${dest}" ]]; then _err "pyvenv2: ${name} (src does not exist)"; return 1; fi
-    set_python_env
+    _set_python_env
     local py2_bin
     py2_bin="$(pyenv root)/versions/2.7.18/bin/python2"
     if [[ ! -x "${py2_bin}" ]]; then
-        _err "pyvenv2: python2.7.18 not found (run install_pyenv first)"
+        _err "pyvenv2: python2.7.18 not found (run _pyenv first)"
         return 1
     fi
     "${py2_bin}" -m pip install -q --no-cache-dir virtualenv >/dev/null 2>&1
@@ -123,7 +140,7 @@ _ensure_pipx() {
     _info "pipx not found, attempting to install"
 
     apt-get update -y >/dev/null 2>&1
-    if install_apt pipx && command -v pipx >/dev/null 2>&1; then
+    if _apt pipx && command -v pipx >/dev/null 2>&1; then
         return 0
     fi
 
@@ -214,36 +231,36 @@ _run_logged() {
     return ${rc}
 }
 
-function set_bin_path() {
+_set_bin_path() {
     export PATH="${Z1_BIN}:$PATH"
 }
 
-function set_cargo_env() {
+_set_cargo_env() {
     [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 }
 
-function set_ruby_env() {
+_set_ruby_env() {
     source /usr/local/rvm/scripts/rvm
     rvm use "${Z1_RUBY_VERSION}@default" >/dev/null 2>&1
 }
 
-function set_python_env() {
+_set_python_env() {
     export PYENV_ROOT="$HOME/.pyenv"
     export PATH="${PYENV_ROOT}/bin:$PATH"
     eval "$(pyenv init --path)"
     eval "$(pyenv init -)"
 }
 
-function set_env() {
-    set_bin_path
-    set_cargo_env
-    set_ruby_env
-    set_python_env
+_set_env() {
+    _set_bin_path
+    _set_cargo_env
+    _set_ruby_env
+    _set_python_env
 }
 
-function install_rvm() {
-    install_apt gnupg2
-    install_apt curl
+_rvm() {
+    _apt gnupg2
+    _apt curl
 
     curl -sSL https://rvm.io/mpapis.asc | gpg --import - >/dev/null 2>&1
     curl -sSL https://rvm.io/pkuczynski.asc | gpg --import - >/dev/null 2>&1
@@ -262,27 +279,27 @@ function install_rvm() {
     rvm cleanup all >/dev/null 2>&1 || true
 }
 
-function install_pyenv() {
-    install_apt git
-    install_apt curl
-    install_apt build-essential
+_pyenv() {
+    _apt git
+    _apt curl
+    _apt build-essential
 
     curl -o /tmp/pyenv.run https://pyenv.run
     bash /tmp/pyenv.run >/dev/null 2>&1 \
         && _ok "pyenv: installer" || { _err "pyenv: installer"; return 1; }
     rm -f /tmp/pyenv.run
 
-    set_python_env
+    _set_python_env
 
-    install_apt libssl-dev
-    install_apt zlib1g-dev
-    install_apt libbz2-dev
-    install_apt libreadline-dev
-    install_apt libsqlite3-dev
-    install_apt libncurses5-dev
-    install_apt libncursesw5-dev
-    install_apt libffi-dev
-    install_apt liblzma-dev
+    _apt libssl-dev
+    _apt zlib1g-dev
+    _apt libbz2-dev
+    _apt libreadline-dev
+    _apt libsqlite3-dev
+    _apt libncurses5-dev
+    _apt libncursesw5-dev
+    _apt libffi-dev
+    _apt liblzma-dev
 
     local v
     for v in $PYTHON_VERSIONS; do
@@ -292,12 +309,12 @@ function install_pyenv() {
 
     pyenv global $PYTHON_VERSIONS
 
-    install_apt python3-venv
+    _apt python3-venv
 
     _ok "pyenv: global versions set to: ${PYTHON_VERSIONS}"
 }
 
-install_rust() {
+_rust() {
     if command -v rustc >/dev/null 2>&1; then
         _info "skip: rust (already installed: $(rustc --version))"
         return
@@ -309,7 +326,7 @@ install_rust() {
             return
         fi
     fi
-    install_apt curl
+    _apt curl
     curl -sSf https://sh.rustup.rs -o /tmp/rustup-init.sh \
         || { _err "rust: download rustup-init failed"; return 1; }
     bash /tmp/rustup-init.sh -y --default-toolchain stable --profile minimal >/dev/null 2>&1 \
