@@ -1,5 +1,3 @@
-# ./runtime/init.sh
-
 #!/usr/bin/env bash
 
 Z1_HOME="/z1"
@@ -35,12 +33,14 @@ chmod 0440 "/etc/sudoers.d/${Z1_USER}"
 Z1_USER_HOME=$(getent passwd "${Z1_USER}" | cut -d: -f6)
 mkdir -p "${Z1_USER_HOME}"
 
+touch "${Z1_HOME}/.provisioned" 2>/dev/null || true
+
 if [[ -d "/root/.oh-my-zsh" ]] && [[ ! -d "${Z1_USER_HOME}/.oh-my-zsh" ]]; then
-    cp -r "/root/.oh-my-zsh" "${Z1_USER_HOME}/.oh-my-zsh"
+    cp -r "/root/.oh-my-zsh" "${Z1_USER_HOME}/.oh-my-zsh" || true
 fi
 
-chown -R "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}"
-chmod -R 0777 "${Z1_USER_HOME}"
+chown -R "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}" || true
+chmod -R 0777 "${Z1_USER_HOME}" || true
 
 export Z1_WORKSPACE
 if [[ -f "${Z1_HOME}/runtime/workspace.sh" ]]; then
@@ -64,8 +64,12 @@ if [[ -f "${Z1_HOME}/assets/aliases.sh" ]]; then
     chown "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}/.bashrc"
 fi
 
-chmod -R 0777 "${Z1_USER_HOME}"
+chmod -R 0777 "${Z1_USER_HOME}" || true
 
 cd "${Z1_WORKSPACE}" 2>/dev/null || cd "${Z1_USER_HOME}"
 
-exec su -s /bin/zsh -l "${Z1_USER}"
+Z1_SHELL="/bin/zsh"
+[[ -x "${Z1_SHELL}" ]] || Z1_SHELL="/bin/bash"
+
+exec su -s "${Z1_SHELL}" -l "${Z1_USER}"
+
