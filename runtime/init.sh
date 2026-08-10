@@ -33,6 +33,11 @@ chmod 0440 "/etc/sudoers.d/${Z1_USER}"
 
 Z1_USER_HOME=$(getent passwd "${Z1_USER}" | cut -d: -f6)
 mkdir -p "${Z1_USER_HOME}"
+
+if [[ -d "/root/.oh-my-zsh" ]] && [[ ! -d "${Z1_USER_HOME}/.oh-my-zsh" ]]; then
+    cp -r "/root/.oh-my-zsh" "${Z1_USER_HOME}/.oh-my-zsh"
+fi
+
 chown -R "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}"
 chmod -R 0777 "${Z1_USER_HOME}"
 
@@ -58,7 +63,7 @@ if [[ -f "${Z1_HOME}/assets/aliases.sh" ]]; then
     chown "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}/.bashrc"
 fi
 
-chmod 0777 "${Z1_USER_HOME}"
+chmod -R 0777 "${Z1_USER_HOME}"
 
 if [[ "${VNC_MODE:-0}" == "1" ]] && [[ -f "${Z1_HOME}/runtime/vnc.sh" ]]; then
     source "${Z1_HOME}/runtime/vnc.sh"

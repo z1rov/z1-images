@@ -54,23 +54,23 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 COPY install/common.sh /z1/install/common.sh
 RUN chmod +x /z1/install/common.sh
 
-COPY install/p_recon.sh /z1/install/p_recon.sh
-RUN chmod +x /z1/install/p_recon.sh && apt-get update && bash -c 'source /z1/install/common.sh && source /z1/install/p_recon.sh && p_recon' && apt-get clean && rm -rf /var/lib/apt/lists/*
+#COPY install/p_recon.sh /z1/install/p_recon.sh
+#RUN chmod +x /z1/install/p_recon.sh && apt-get update && bash -c 'source /z1/install/common.sh && source /z1/install/p_recon.sh && p_recon' && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY install/p_wordlists.sh /z1/install/p_wordlists.sh
-RUN chmod +x /z1/install/p_wordlists.sh && apt-get update && bash -c 'source /z1/install/common.sh && source /z1/install/p_wordlists.sh && p_wordlists' && apt-get clean && rm -rf /var/lib/apt/lists/*
+#COPY install/p_wordlists.sh /z1/install/p_wordlists.sh
+#RUN chmod +x /z1/install/p_wordlists.sh && apt-get update && bash -c 'source /z1/install/common.sh && source /z1/install/p_wordlists.sh && p_wordlists' && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY install/p_binaries.sh /z1/install/p_binaries.sh
 RUN chmod +x /z1/install/p_binaries.sh && apt-get update && bash -c 'source /z1/install/common.sh && source /z1/install/p_binaries.sh && p_binaries' && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY install/p_ad.sh /z1/install/p_ad.sh
-RUN chmod +x /z1/install/p_ad.sh && apt-get update && bash -c 'source /z1/install/common.sh && source /z1/install/p_ad.sh && p_ad' && apt-get clean && rm -rf /var/lib/apt/lists/*
+#COPY install/p_ad.sh /z1/install/p_ad.sh
+#RUN chmod +x /z1/install/p_ad.sh && apt-get update && bash -c 'source /z1/install/common.sh && source /z1/install/p_ad.sh && p_ad' && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY install/p_web.sh /z1/install/p_web.sh
-RUN chmod +x /z1/install/p_web.sh && apt-get update && bash -c 'source /z1/install/common.sh && source /z1/install/p_web.sh && p_web' && apt-get clean && rm -rf /var/lib/apt/lists/*
+#COPY install/p_web.sh /z1/install/p_web.sh
+#RUN chmod +x /z1/install/p_web.sh && apt-get update && bash -c 'source /z1/install/common.sh && source /z1/install/p_web.sh && p_web' && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY install/p_infra.sh /z1/install/p_infra.sh
-RUN chmod +x /z1/install/p_infra.sh && apt-get update && bash -c 'source /z1/install/common.sh && source /z1/install/p_infra.sh && p_infra' && apt-get clean && rm -rf /var/lib/apt/lists/*
+#COPY install/p_infra.sh /z1/install/p_infra.sh
+#RUN chmod +x /z1/install/p_infra.sh && apt-get update && bash -c 'source /z1/install/common.sh && source /z1/install/p_infra.sh && p_infra' && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY assets/ /z1/assets/
 COPY assets/bin/ /opt/tools/bin/
