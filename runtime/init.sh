@@ -4,7 +4,6 @@ Z1_HOME="/z1"
 Z1_USER="${Z1_USER:-z1user}"
 Z1_UID="${Z1_UID:-1000}"
 Z1_GID="${Z1_GID:-1000}"
-Z1_WORKSPACE="${Z1_WORKSPACE:-/workspace}"
 
 if getent group "${Z1_GID}" >/dev/null 2>&1; then
     Z1_GROUP=$(getent group "${Z1_GID}" | cut -d: -f1)
@@ -33,8 +32,6 @@ chmod 0440 "/etc/sudoers.d/${Z1_USER}"
 Z1_USER_HOME=$(getent passwd "${Z1_USER}" | cut -d: -f6)
 mkdir -p "${Z1_USER_HOME}"
 
-touch "${Z1_HOME}/.provisioned" 2>/dev/null || true
-
 if [[ -d "/root/.oh-my-zsh" ]] && [[ ! -d "${Z1_USER_HOME}/.oh-my-zsh" ]]; then
     cp -r "/root/.oh-my-zsh" "${Z1_USER_HOME}/.oh-my-zsh" || true
 fi
@@ -42,7 +39,6 @@ fi
 chown -R "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}" || true
 chmod -R 0777 "${Z1_USER_HOME}" || true
 
-export Z1_WORKSPACE
 if [[ -f "${Z1_HOME}/runtime/workspace.sh" ]]; then
     source "${Z1_HOME}/runtime/workspace.sh" || true
 fi
@@ -66,10 +62,9 @@ fi
 
 chmod -R 0777 "${Z1_USER_HOME}" || true
 
-cd "${Z1_WORKSPACE}" 2>/dev/null || cd "${Z1_USER_HOME}"
+cd "${Z1_USER_HOME}"
 
 Z1_SHELL="/bin/zsh"
 [[ -x "${Z1_SHELL}" ]] || Z1_SHELL="/bin/bash"
 
 exec su -s "${Z1_SHELL}" -l "${Z1_USER}"
-
