@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-alias workspace='cd "${Z1_WORKSPACE:-$HOME/workspace}"'
-alias projects='cd "${Z1_WORKSPACE:-$HOME/workspace}/projects"'
-alias loot='cd "${Z1_WORKSPACE:-$HOME/workspace}/loot"'
+alias workspace='cd "$HOME"'
+alias projects='cd "$HOME/projects"'
+alias loot='cd "$HOME/loot"'
 alias wordlists='cd /usr/share/wordlists'
 alias rules='cd /usr/share/rules'
 alias tools='cd /opt/tools'
@@ -18,5 +18,7 @@ alias la='ls -la --color=auto'
 alias grep='grep --color=auto'
 alias cls='clear'
 alias z1-tools='ls /opt/tools/bin/'
-export PS1='\[\033[0;36m\][Z1:] \[\033[1;32m\]\w\[\033[0m\] # '
-cd "${Z1_WORKSPACE:-$HOME/workspace}" 2>/dev/null || cd "$HOME"
+if [ -n "$BASH_VERSION" ]; then
+    export PS1='\[\033[0;36m\][Z1:] \[\033[1;32m\]\w\[\033[0m\] # '
+fi
+cd "$HOME" 2>/dev/null
