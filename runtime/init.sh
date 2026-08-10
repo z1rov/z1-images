@@ -1,5 +1,6 @@
-#!/usr/bin/env bash
 # ./runtime/init.sh
+
+#!/usr/bin/env bash
 
 Z1_HOME="/z1"
 Z1_USER="${Z1_USER:-z1user}"
@@ -64,11 +65,6 @@ if [[ -f "${Z1_HOME}/assets/aliases.sh" ]]; then
 fi
 
 chmod -R 0777 "${Z1_USER_HOME}"
-
-if [[ "${VNC_MODE:-0}" == "1" ]] && [[ -f "${Z1_HOME}/runtime/vnc.sh" ]]; then
-    source "${Z1_HOME}/runtime/vnc.sh"
-    start_vnc "${Z1_USER}"
-fi
 
 cd "${Z1_WORKSPACE}" 2>/dev/null || cd "${Z1_USER_HOME}"
 
