@@ -56,6 +56,19 @@ RUN chmod +x /z1/install/func.sh
 COPY install/bin.sh /z1/install/bin.sh
 RUN chmod +x /z1/install/bin.sh && apt-get update && bash -c 'source /z1/install/func.sh && source /z1/install/bin.sh && _deploy' && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+COPY install/wordlist.sh /z1/install/wordlist.sh
+RUN chmod +x /z1/install/wordlist.sh && apt-get update && bash -c 'source /z1/install/func.sh && source /z1/install/wordlist.sh && _wordlists' && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY install/recon.sh /z1/install/recon.sh
+RUN chmod +x /z1/install/recon.sh && apt-get update && bash -c 'source /z1/install/func.sh && source /z1/install/recon.sh && _recon' && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY install/ad.sh /z1/install/ad.sh
+RUN chmod +x /z1/install/ad.sh && apt-get update && bash -c 'source /z1/install/func.sh && source /z1/install/ad.sh && _ad' && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY install/web.sh /z1/install/web.sh
+RUN chmod +x /z1/install/web.sh && apt-get update && bash -c 'source /z1/install/func.sh && source /z1/install/web.sh && _web' && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+
 COPY assets/ /z1/assets/
 COPY assets/bin/ /opt/tools/bin/
 RUN chmod +x /opt/tools/bin/*
