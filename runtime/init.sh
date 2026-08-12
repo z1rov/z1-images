@@ -39,6 +39,8 @@ fi
 chown -R "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}" || true
 chmod -R 0777 "${Z1_USER_HOME}" || true
 
+chmod -R 0777 /opt/tools 2>/dev/null || true
+
 if [[ -f "${Z1_HOME}/runtime/workspace.sh" ]]; then
     source "${Z1_HOME}/runtime/workspace.sh" || true
 fi
