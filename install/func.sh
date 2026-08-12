@@ -31,7 +31,11 @@ _go() {
     go install "$2" >/dev/null 2>&1 || { _err "go: $1"; return 1; }
     local gobin="${GOPATH:-/root/go}/bin/$1"
     if [[ -f "${gobin}" ]]; then
-        ln -sf "${gobin}" "${Z1_BIN}/$1"
+        cp -f "${gobin}" "${Z1_BIN}/$1"
+        chmod +x "${Z1_BIN}/$1"
+    else
+        _err "go: $1 (binary not found at ${gobin})"
+        return 1
     fi
     _ok "go: $1 → ${Z1_BIN}/$1"
 }
