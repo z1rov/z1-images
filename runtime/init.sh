@@ -40,6 +40,11 @@ chown -R "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}" || true
 chmod -R 0777 "${Z1_USER_HOME}" || true
 
 chmod -R 0777 /opt/tools 2>/dev/null || true
+chmod 0755 /root 2>/dev/null || true
+chmod -R o+rX /root/go 2>/dev/null || true
+chmod -R o+rX /root/.pyenv 2>/dev/null || true
+chmod -R o+rX /root/.cargo 2>/dev/null || true
+chmod -R o+rX /root/.local 2>/dev/null || true
 
 if [[ -f "${Z1_HOME}/runtime/workspace.sh" ]]; then
     source "${Z1_HOME}/runtime/workspace.sh" || true

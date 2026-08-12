@@ -83,7 +83,7 @@ function _dirsearch() {
     _git dirsearch https://github.com/maurosoria/dirsearch
     local dest="${Z1_SRC}/dirsearch"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" requests
         [[ -f "${dest}/requirements.txt" ]] && \
             _venv_pip "${dest}" -r "${dest}/requirements.txt"
@@ -101,7 +101,7 @@ function _ssrfmap() {
     _git ssrfmap https://github.com/swisskyrepo/SSRFmap
     local dest="${Z1_SRC}/ssrfmap"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" requests
         [[ -f "${dest}/requirements.txt" ]] && \
             _venv_pip "${dest}" -r "${dest}/requirements.txt"
@@ -156,7 +156,7 @@ function _xsstrike() {
     _git xsstrike https://github.com/s0md3v/XSStrike.git
     local dest="${Z1_SRC}/xsstrike"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" fuzzywuzzy python-Levenshtein
         [[ -f "${dest}/requirements.txt" ]] && \
             _venv_pip "${dest}" -r "${dest}/requirements.txt"
@@ -174,7 +174,7 @@ function _bolt() {
     _git bolt https://github.com/s0md3v/Bolt.git
     local dest="${Z1_SRC}/bolt"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" fuzzywuzzy python-Levenshtein
         [[ -f "${dest}/requirements.txt" ]] && \
             _venv_pip "${dest}" -r "${dest}/requirements.txt"
@@ -203,7 +203,7 @@ function _fuxploider() {
     _git fuxploider https://github.com/almandin/fuxploider.git
     local dest="${Z1_SRC}/fuxploider"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" coloredlogs
         [[ -f "${dest}/requirements.txt" ]] && \
             _venv_pip "${dest}" -r "${dest}/requirements.txt"
@@ -227,7 +227,7 @@ function _patator() {
     _git patator https://github.com/lanjelot/patator.git
     local dest="${Z1_SRC}/patator"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         echo 'setuptools<82' > "${dest}/build-constraints.txt"
         [[ -f "${dest}/requirements.txt" ]] && \
             "${dest}/venv/bin/pip" install -q --no-cache-dir \
@@ -342,7 +342,7 @@ function _drupwn() {
     if [[ -d "${dest}/venv" ]]; then
         rm -rf "${dest}/venv"
     fi
-    python3 -m venv "${dest}/venv" >/dev/null 2>&1 \
+    /usr/bin/python3 -m venv "${dest}/venv" >/dev/null 2>&1 \
         && _ok "venv: drupwn" || { _err "venv: drupwn"; return 1; }
     "${dest}/venv/bin/pip" install -q --no-cache-dir --upgrade pip >/dev/null 2>&1
     "${dest}/venv/bin/pip" install -q --no-cache-dir setuptools wheel >/dev/null 2>&1 \
@@ -409,7 +409,7 @@ function _cmsmap() {
     done
     pipx uninstall cmsmap >/dev/null 2>&1
     rm -rf /root/.local/share/pipx/venvs/cmsmap
-    python3 -m venv "${dest}/venv" \
+    /usr/bin/python3 -m venv "${dest}/venv" \
         && _ok "venv: cmsmap" || { _err "venv: cmsmap"; return 1; }
     _run_logged "pip: upgrade pip/setuptools/wheel" \
         "${dest}/venv/bin/pip" install --no-cache-dir --upgrade pip setuptools wheel \
@@ -457,7 +457,7 @@ function _moodlescan() {
     _git moodlescan https://github.com/inc0d3/moodlescan.git
     local dest="${Z1_SRC}/moodlescan"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         [[ -f "${dest}/requirements.txt" ]] && \
             _venv_pip "${dest}" -r "${dest}/requirements.txt"
         (cd "${dest}" && ./venv/bin/python3 moodlescan.py -a >/dev/null 2>&1) || true
@@ -502,7 +502,7 @@ function _cloudfail() {
     fi
     _run_logged "git: CloudFail" git clone -q --depth 1 https://github.com/m0rtem/CloudFail "${dest}" \
         || return 1
-    python3 -m venv "${dest}/venv" \
+    /usr/bin/python3 -m venv "${dest}/venv" \
         && _ok "venv: cloudfail" || { _err "venv: cloudfail"; return 1; }
     _run_logged "pip: upgrade pip" \
         "${dest}/venv/bin/pip" install --no-cache-dir --upgrade pip
@@ -532,7 +532,7 @@ function _oneforall() {
     fi
     _run_logged "git: OneForAll" git clone -q --depth 1 https://github.com/shmilylty/OneForAll.git "${dest}" \
         || return 1
-    python3 -m venv "${dest}/venv" \
+    /usr/bin/python3 -m venv "${dest}/venv" \
         && _ok "venv: oneforall" || { _err "venv: oneforall"; return 1; }
     _run_logged "pip: upgrade pip/setuptools/wheel" \
         "${dest}/venv/bin/pip" install --no-cache-dir --upgrade pip setuptools wheel
@@ -566,7 +566,7 @@ function _corscanner() {
     _git corscanner https://github.com/chenjj/CORScanner.git
     local dest="${Z1_SRC}/corscanner"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" gevent
         [[ -f "${dest}/requirements.txt" ]] && \
             _venv_pip "${dest}" -r "${dest}/requirements.txt"
@@ -587,7 +587,7 @@ function _linkfinder() {
     _git linkfinder https://github.com/GerbenJavado/LinkFinder.git
     local dest="${Z1_SRC}/linkfinder"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" jsbeautifier
         [[ -f "${dest}/requirements.txt" ]] && \
             _venv_pip "${dest}" -r "${dest}/requirements.txt"
@@ -664,7 +664,7 @@ function _jwt_tool() {
     _git jwt_tool https://github.com/ticarpi/jwt_tool
     local dest="${Z1_SRC}/jwt_tool"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" ratelimit
         [[ -f "${dest}/requirements.txt" ]] && \
             _venv_pip "${dest}" -r "${dest}/requirements.txt"
@@ -730,7 +730,7 @@ function _symfony-exploits() {
     _git symfony-exploits https://github.com/ambionics/symfony-exploits
     local dest="${Z1_SRC}/symfony-exploits"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" requests
         cat > "${Z1_BIN}/secret_fragment_exploit.py" << EOF
 #!/usr/bin/env bash
@@ -752,7 +752,7 @@ function _kraken() {
     _git kraken https://github.com/kraken-ng/Kraken.git
     local dest="${Z1_SRC}/kraken"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" jsonschema validators
         [[ -f "${dest}/requirements.txt" ]] && \
             _venv_pip "${dest}" -r "${dest}/requirements.txt"
@@ -769,7 +769,7 @@ function _httpmethods() {
     _git httpmethods https://github.com/ShutdownRepo/httpmethods
     local dest="${Z1_SRC}/httpmethods"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" requests
         [[ -f "${dest}/requirements.txt" ]] && \
             _venv_pip "${dest}" -r "${dest}/requirements.txt"
@@ -786,7 +786,7 @@ function _h2csmuggler() {
     _git h2csmuggler https://github.com/BishopFox/h2csmuggler
     local dest="${Z1_SRC}/h2csmuggler"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" h2
         cat > "${Z1_BIN}/h2csmuggler.py" << EOF
 #!/usr/bin/env bash
@@ -802,7 +802,7 @@ function _smuggler() {
     _git smuggler https://github.com/defparam/smuggler.git
     local dest="${Z1_SRC}/smuggler"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         cat > "${Z1_BIN}/smuggler.py" << EOF
 #!/usr/bin/env bash
 exec "${dest}/venv/bin/python3" "${dest}/smuggler.py" "\$@"
@@ -821,7 +821,7 @@ function _tomcatwardeployer() {
     _git tomcatwardeployer https://github.com/mgeeky/tomcatWarDeployer.git
     local dest="${Z1_SRC}/tomcatwardeployer"
     if [[ -d "${dest}" ]]; then
-        python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1
         _venv_pip "${dest}" mechanize
         [[ -f "${dest}/requirements.txt" ]] && \
             _venv_pip "${dest}" -r "${dest}/requirements.txt"
@@ -862,7 +862,7 @@ function _gittools() {
     local extractor="${Z1_SRC}/gittools/Extractor"
     local dumper="${Z1_SRC}/gittools/Dumper"
     if [[ -d "${finder}" ]]; then
-        python3 -m venv --system-site-packages "${finder}/venv" >/dev/null 2>&1
+        /usr/bin/python3 -m venv --system-site-packages "${finder}/venv" >/dev/null 2>&1
         [[ -f "${finder}/requirements.txt" ]] && \
             "${finder}/venv/bin/pip" install -q --no-cache-dir \
                 -r "${finder}/requirements.txt" 2>/dev/null
