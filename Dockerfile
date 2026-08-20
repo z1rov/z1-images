@@ -68,6 +68,8 @@ RUN chmod +x /z1/install/ad.sh && apt-get update && bash -c 'source /z1/install/
 COPY install/web.sh /z1/install/web.sh
 RUN chmod +x /z1/install/web.sh && apt-get update && bash -c 'source /z1/install/func.sh && source /z1/install/web.sh && _web' && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+COPY install/inf.sh /z1/install/inf.sh
+RUN chmod +x /z1/install/inf.sh && apt-get update && bash -c 'source /z1/install/func.sh && source /z1/install/inf.sh && _inf' && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY assets/ /z1/assets/
 COPY assets/bin/ /opt/tools/bin/
