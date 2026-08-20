@@ -32,7 +32,14 @@ alias ll='ls -lahF --color=auto'
 alias la='ls -la --color=auto'
 alias ls='ls --color=auto'
 
-alias cd='cd_func() { if [[ $# -eq 0 ]]; then cd "$HOME"; else builtin cd "$@"; fi; }; cd_func'
+cd_func() {
+    if [[ $# -eq 0 ]]; then
+        builtin cd "$HOME"
+    else
+        builtin cd "$@"
+    fi
+}
+alias cd='cd_func'
 
 HISTSIZE=10000
 SAVEHIST=10000
@@ -42,4 +49,4 @@ setopt COMPLETE_IN_WORD
 setopt ALWAYS_TO_END
 unsetopt FLOW_CONTROL
 
-cd "$HOME" 2>/dev/null
+builtin cd "$HOME" 2>/dev/null

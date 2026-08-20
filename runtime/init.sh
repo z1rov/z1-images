@@ -69,6 +69,7 @@ fi
 
 chmod -R 0777 "${Z1_USER_HOME}" || true
 
+export HOME="${Z1_USER_HOME}"
 cd "${Z1_USER_HOME}"
 
 Z1_SHELL="/bin/zsh"
