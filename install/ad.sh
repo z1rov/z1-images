@@ -136,7 +136,56 @@ WRAPPER
 }
 
 function _impacket()        { _pip impacket; }
-function _certipy()         { _pip certipy-ad; }
+
+function _certipy() {
+    local CERTIPY_DIR="${Z1_SRC}/certipy-ad"
+    local PY_VER="3.13.2"
+    mkdir -p "${CERTIPY_DIR}"
+    _set_python_env
+    local py_bin
+    py_bin="$(pyenv root)/versions/${PY_VER}/bin/python3"
+    if [[ ! -x "${py_bin}" ]]; then
+        _apt build-essential
+        _apt libssl-dev
+        _apt zlib1g-dev
+        _apt libbz2-dev
+        _apt libreadline-dev
+        _apt libsqlite3-dev
+        _apt libncurses5-dev
+        _apt libncursesw5-dev
+        _apt libffi-dev
+        _apt liblzma-dev
+        if ! command -v pyenv >/dev/null 2>&1; then
+            curl -o /tmp/pyenv.run https://pyenv.run
+            bash /tmp/pyenv.run >/dev/null 2>&1
+            rm -f /tmp/pyenv.run
+            _set_python_env
+        fi
+        pyenv install -s "${PY_VER}" >/dev/null 2>&1 \
+            && _ok "pyenv: python${PY_VER}" || { _err "pyenv: python${PY_VER}"; return 1; }
+    fi
+    py_bin="$(pyenv root)/versions/${PY_VER}/bin/python3"
+    if [[ ! -x "${py_bin}" ]]; then
+        _err "certipy-ad: python ${PY_VER} not available after install attempt"
+        return 1
+    fi
+    "${py_bin}" -m venv "${CERTIPY_DIR}/venv" >/dev/null 2>&1
+    "${CERTIPY_DIR}/venv/bin/pip" install -q --no-cache-dir --upgrade pip >/dev/null 2>&1
+    "${CERTIPY_DIR}/venv/bin/pip" install -q --no-cache-dir --upgrade certipy-ad >/dev/null 2>&1 \
+        && _ok "pip: certipy-ad [venv py${PY_VER}]" || { _err "pip: certipy-ad [venv py${PY_VER}]"; return 1; }
+    rm -f "${Z1_BIN}/certipy" "${Z1_BIN}/certipy-ad"
+    cat > "${Z1_BIN}/certipy" << WRAPPER
+#!/usr/bin/env bash
+exec "${CERTIPY_DIR}/venv/bin/certipy" "\$@"
+WRAPPER
+    chmod +x "${Z1_BIN}/certipy"
+    ln -sf "${Z1_BIN}/certipy" "${Z1_BIN}/certipy-ad"
+    if "${Z1_BIN}/certipy" -v >/dev/null 2>&1; then
+        _ok "certipy → ${Z1_BIN}/certipy"
+    else
+        _err "certipy: wrapper created but tool failed to run"
+    fi
+}
 function _bloodyad()        { _pip bloodyAD; }
 function _ldapdomaindump()  { _pip ldapdomaindump; }
 function _ldeep()           { _pip ldeep; }
