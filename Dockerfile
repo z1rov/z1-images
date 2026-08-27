@@ -14,7 +14,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash ca-certificates curl wget git gnupg locate unzip\
     python3 python3-pip iproute2 iputils-ping nano tree\
-    dnsutils net-tools procps locales tzdata ntpdate\
+    dnsutils net-tools procps locales tzdata\
     less vim sudo openssh-client xclip\
     build-essential gcc libssl-dev libffi-dev \
     python3-dev \
