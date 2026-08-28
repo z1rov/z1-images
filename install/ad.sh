@@ -15,7 +15,7 @@ function _ad_base() {
     _apt nbtscan
     _apt onesixtyone
     _apt samdump2
-    _apt freerdp2-x11
+    _apt freerdp3-x11
     _apt hydra
     _apt hashcat
     _apt ncat

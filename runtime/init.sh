@@ -36,6 +36,31 @@ if [[ -d "/root/.oh-my-zsh" ]] && [[ ! -d "${Z1_USER_HOME}/.oh-my-zsh" ]]; then
     cp -r "/root/.oh-my-zsh" "${Z1_USER_HOME}/.oh-my-zsh" || true
 fi
 
+if [[ -f "${Z1_HOME}/runtime/workspace.sh" ]]; then
+    source "${Z1_HOME}/runtime/workspace.sh" || true
+fi
+
+mkdir -p /etc/zsh
+
+if [[ -f "${Z1_HOME}/assets/zshrc-z1" ]]; then
+    cp "${Z1_HOME}/assets/zshrc-z1" /etc/zsh/zshrc
+fi
+
+if [[ -f "${Z1_HOME}/assets/aliases.sh" ]]; then
+    cp "${Z1_HOME}/assets/aliases.sh" /etc/z1-aliases.sh
+    chmod 0644 /etc/z1-aliases.sh
+
+    grep -qxF 'source /etc/z1-aliases.sh' /etc/zsh/zshrc 2>/dev/null || \
+        echo 'source /etc/z1-aliases.sh' >> /etc/zsh/zshrc
+
+    touch /etc/bash.bashrc
+    grep -qxF 'source /etc/z1-aliases.sh' /etc/bash.bashrc 2>/dev/null || \
+        echo 'source /etc/z1-aliases.sh' >> /etc/bash.bashrc
+fi
+
+[[ -f "${Z1_USER_HOME}/.zshrc" ]] || touch "${Z1_USER_HOME}/.zshrc"
+[[ -f "${Z1_USER_HOME}/.bashrc" ]] || touch "${Z1_USER_HOME}/.bashrc"
+
 chown -R "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}" || true
 chmod -R 0777 "${Z1_USER_HOME}" || true
 
@@ -45,29 +70,6 @@ chmod -R o+rX /root/go 2>/dev/null || true
 chmod -R o+rX /root/.pyenv 2>/dev/null || true
 chmod -R o+rX /root/.cargo 2>/dev/null || true
 chmod -R o+rX /root/.local 2>/dev/null || true
-
-if [[ -f "${Z1_HOME}/runtime/workspace.sh" ]]; then
-    source "${Z1_HOME}/runtime/workspace.sh" || true
-fi
-
-if [[ -f "${Z1_HOME}/assets/zshrc-z1" ]]; then
-    cp "${Z1_HOME}/assets/zshrc-z1" "${Z1_USER_HOME}/.zshrc"
-    chown "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}/.zshrc"
-fi
-
-if [[ -f "${Z1_HOME}/assets/aliases.sh" ]]; then
-    cp "${Z1_HOME}/assets/aliases.sh" "${Z1_USER_HOME}/.z1-aliases.sh"
-    chown "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}/.z1-aliases.sh"
-    grep -qxF "source \"${Z1_USER_HOME}/.z1-aliases.sh\"" "${Z1_USER_HOME}/.zshrc" 2>/dev/null || \
-        echo "source \"${Z1_USER_HOME}/.z1-aliases.sh\"" >> "${Z1_USER_HOME}/.zshrc"
-
-    touch "${Z1_USER_HOME}/.bashrc"
-    grep -qxF "source \"${Z1_USER_HOME}/.z1-aliases.sh\"" "${Z1_USER_HOME}/.bashrc" 2>/dev/null || \
-        echo "source \"${Z1_USER_HOME}/.z1-aliases.sh\"" >> "${Z1_USER_HOME}/.bashrc"
-    chown "${Z1_USER}:${Z1_GROUP}" "${Z1_USER_HOME}/.bashrc"
-fi
-
-chmod -R 0777 "${Z1_USER_HOME}" || true
 
 export HOME="${Z1_USER_HOME}"
 cd "${Z1_USER_HOME}"
