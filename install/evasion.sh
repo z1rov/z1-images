@@ -6,51 +6,44 @@ source /z1/install/func.sh
 mkdir -p /opt/tools
 
 # ---------------------------------------------------------------------------
-# donut — position-independent shellcode generator (TheWover/donut, C)
+# donut — position-independent shellcode generator (Kali .deb package)
 # ---------------------------------------------------------------------------
 function _donut() {
     local dest="${Z1_FORJA}/donut"
     mkdir -p "${dest}"
 
-    # Try pre-built Linux binary from GitHub releases first
-    local url
-    url=$(_gh_find_asset "TheWover/donut" \
-        "('linux' in n.lower()) and not n.endswith('.md') and not n.endswith('.txt') and not n.endswith('.c')")
+    local deb_url="http://xsrv.moratelindo.io/kali/pool/main/d/donut-shellcode/donut_1.1-0kali3+b1_amd64.deb"
+    local deb_tmp="/tmp/donut.deb"
 
-    if [[ -n "${url}" ]]; then
-        local fname; fname=$(basename "${url}")
-        local tmp; tmp=$(mktemp -d)
-        curl -sfL -o "${tmp}/${fname}" "${url}"
-
-        local bin_file=""
-        if [[ "${fname}" == *.zip ]]; then
-            unzip -oq "${tmp}/${fname}" -d "${tmp}/out" 2>/dev/null
-            bin_file=$(find "${tmp}/out" -type f -name "donut*" ! -name "*.c" ! -name "*.h" 2>/dev/null | head -1)
-        elif [[ "${fname}" == *.tar.gz ]]; then
-            mkdir -p "${tmp}/out"
-            tar -xzf "${tmp}/${fname}" -C "${tmp}/out" 2>/dev/null
-            bin_file=$(find "${tmp}/out" -type f -name "donut*" 2>/dev/null | head -1)
-        else
-            bin_file="${tmp}/${fname}"
+    # Download and install the Kali .deb
+    if wget -q --timeout=30 -O "${deb_tmp}" "${deb_url}" 2>/dev/null; then
+        if dpkg -i "${deb_tmp}" >/dev/null 2>&1 || apt-get install -fy >/dev/null 2>&1; then
+            rm -f "${deb_tmp}"
+            # Find where dpkg placed the binary
+            local sys_bin
+            sys_bin=$(dpkg -L donut-shellcode 2>/dev/null | grep -E '/usr/.*/donut$' | head -1)
+            [[ -z "${sys_bin}" ]] && sys_bin=$(command -v donut 2>/dev/null)
+            if [[ -n "${sys_bin}" && -x "${sys_bin}" ]]; then
+                cp "${sys_bin}" "${dest}/donut"
+                ln -sf "${dest}/donut" "${Z1_BIN}/donut"
+                _ok "deb: donut → ${Z1_BIN}/donut (kali package)"
+                return
+            fi
         fi
-
-        if [[ -n "${bin_file}" && -f "${bin_file}" ]]; then
-            chmod +x "${bin_file}"
-            cp "${bin_file}" "${dest}/donut"
-            ln -sf "${dest}/donut" "${Z1_BIN}/donut"
-            rm -rf "${tmp}"
-            _ok "bin: donut → ${Z1_BIN}/donut (pre-built)"
-            return
-        fi
-        rm -rf "${tmp}"
+        rm -f "${deb_tmp}"
+        _err "deb: donut install failed, falling back to source build"
+    else
+        _err "wget: donut .deb unreachable, falling back to source build"
     fi
 
-    # Build from source (CMake)
+    # Fallback: build from source (CMake)
     _apt cmake
     _apt build-essential
     local src="${Z1_SRC}/donut-src"
-    git clone -q --depth 1 https://github.com/TheWover/donut "${src}" >/dev/null 2>&1 \
-        || { _err "git: donut"; return 1; }
+    if [[ ! -d "${src}" ]]; then
+        git clone -q --depth 1 https://github.com/TheWover/donut "${src}" >/dev/null 2>&1 \
+            || { _err "git: donut"; return 1; }
+    fi
     (
         cd "${src}"
         cmake . -DCMAKE_BUILD_TYPE=Release >/dev/null 2>&1 \
