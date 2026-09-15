@@ -135,7 +135,7 @@ WRAPPER
     fi
 }
 
-function _impacket()        { _pip impacket; }
+function _impacket() { _pip impacket; }
 
 function _certipy() {
     local CERTIPY_DIR="${Z1_SRC}/certipy-ad"
@@ -186,7 +186,52 @@ WRAPPER
         _err "certipy: wrapper created but tool failed to run"
     fi
 }
-function _bloodyad()        { _pip bloodyAD; }
+
+# bloodyAD — fixed: use isolated venv to avoid dependency conflicts
+function _bloodyad() {
+    local dest="${Z1_SRC}/bloodyAD"
+    if [[ ! -d "${dest}" ]]; then
+        git clone -q --depth 1 https://github.com/CravateRouge/bloodyAD "${dest}" >/dev/null 2>&1 \
+            && _ok "git: bloodyAD → ${dest}" || { _err "git: bloodyAD"; return 1; }
+    else
+        _info "skip: bloodyAD git (already exists)"
+    fi
+
+    python3 -m venv --system-site-packages "${dest}/venv" >/dev/null 2>&1 \
+        || { _err "venv: bloodyAD"; return 1; }
+    "${dest}/venv/bin/pip" install -q --no-cache-dir --upgrade pip >/dev/null 2>&1
+    # Install latest bloodyAD from PyPI into the venv
+    "${dest}/venv/bin/pip" install -q --no-cache-dir bloodyAD >/dev/null 2>&1 \
+        && _ok "pip: bloodyAD [venv]" || {
+        # Fallback: install from cloned source
+        "${dest}/venv/bin/pip" install -q --no-cache-dir "${dest}" >/dev/null 2>&1 \
+            && _ok "pip: bloodyAD [venv, from source]" || { _err "pip: bloodyAD"; return 1; }
+    }
+
+    rm -f "${Z1_BIN}/bloodyad" "${Z1_BIN}/bloodyAD"
+    # Prefer entry-point binary, fall back to module invocation
+    local ep
+    ep=$(find "${dest}/venv/bin" \( -name "bloodyAD" -o -name "bloodyad" \) 2>/dev/null | head -1)
+    if [[ -n "${ep}" ]]; then
+        cat > "${Z1_BIN}/bloodyad" << WRAPPER
+#!/usr/bin/env bash
+exec "${ep}" "\$@"
+WRAPPER
+    else
+        cat > "${Z1_BIN}/bloodyad" << WRAPPER
+#!/usr/bin/env bash
+exec "${dest}/venv/bin/python3" -m bloodyAD "\$@"
+WRAPPER
+    fi
+    chmod +x "${Z1_BIN}/bloodyad"
+    ln -sf "${Z1_BIN}/bloodyad" "${Z1_BIN}/bloodyAD"
+    if "${Z1_BIN}/bloodyad" --help >/dev/null 2>&1; then
+        _ok "bloodyAD → ${Z1_BIN}/bloodyad"
+    else
+        _err "bloodyAD: installed but self-test failed (may still work at runtime)"
+    fi
+}
+
 function _ldapdomaindump()  { _pip ldapdomaindump; }
 function _ldeep()           { _pip ldeep; }
 function _mitm6()           { _pip mitm6; }

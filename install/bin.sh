@@ -3,6 +3,8 @@
 source /z1/install/func.sh
 mkdir -p /opt/tools
 
+# ─── Linux post-exploitation ────────────────────────────────────────────────
+
 _linpeas() {
     _forja linpeas "https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh" linpeas.sh
 }
@@ -28,6 +30,8 @@ _lse() {
     _forja lse "https://raw.githubusercontent.com/diego-treitos/linux-smart-enumeration/master/lse.sh" lse.sh
 }
 
+# ─── Windows post-exploitation / enum ───────────────────────────────────────
+
 _winpeas() {
     _forja winpeas "https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASx64.exe" winPEASx64.exe
     _forja winpeas "https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASx86.exe" winPEASx86.exe
@@ -40,6 +44,35 @@ _privesc_check() {
 
 _powerup() {
     _forja powersploit "https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Privesc/PowerUp.ps1" PowerUp.ps1
+}
+
+# PowerView.ps1 — AD recon PowerShell module
+_powerview() {
+    local forja_dir="${Z1_FORJA}/powerview"
+    mkdir -p "${forja_dir}"
+    curl -sfL \
+        "https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Recon/PowerView.ps1" \
+        -o "${forja_dir}/PowerView.ps1" \
+        && _ok "forja: PowerView.ps1 → ${forja_dir}/PowerView.ps1" \
+        || _err "forja: PowerView.ps1"
+    # Also place a convenience copy at the forja root
+    ln -sf "${forja_dir}/PowerView.ps1" "${Z1_FORJA}/PowerView.ps1" 2>/dev/null || true
+}
+
+# Sysinternals Suite (Microsoft) — PsExec, ProcMon, Autoruns, …
+_sysinternals() {
+    local dest="${Z1_FORJA}/sysinternals"
+    mkdir -p "${dest}"
+    _apt unzip
+    local url="https://download.sysinternals.com/files/SysinternalsSuite.zip"
+    if curl -sfL --max-time 120 -o "${dest}/SysinternalsSuite.zip" "${url}"; then
+        unzip -oq "${dest}/SysinternalsSuite.zip" -d "${dest}/" \
+            && rm -f "${dest}/SysinternalsSuite.zip" \
+            && _ok "forja: SysinternalsSuite → ${dest}" \
+            || _err "forja: sysinternals (unzip failed)"
+    else
+        _err "forja: sysinternals (download failed — may be blocked in build env)"
+    fi
 }
 
 _watson() {
@@ -324,6 +357,68 @@ _ligolo_win() {
     rm -rf "${tmp}"
 }
 
+# ─── NEW: RDP lateral movement ───────────────────────────────────────────────
+_sharprdp() {
+    local forja_dir="${Z1_FORJA}/sharprdp"
+    mkdir -p "${forja_dir}"
+    # Try SharpCollection
+    if curl -sfL \
+        "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/SharpRDP.exe" \
+        -o "${forja_dir}/SharpRDP.exe" 2>/dev/null; then
+        _ok "forja: SharpRDP → ${forja_dir}/SharpRDP.exe"
+        return
+    fi
+    # Fallback: GitHub releases from 0xthirteen/SharpRDP
+    local url
+    url=$(_gh_find_asset "0xthirteen/SharpRDP" "n.endswith('.exe')")
+    if [[ -n "${url}" ]]; then
+        curl -sfL -o "${forja_dir}/SharpRDP.exe" "${url}" \
+            && _ok "forja: SharpRDP (from releases)" || _err "forja: SharpRDP"
+    else
+        _err "forja: SharpRDP (not found in SharpCollection or releases)"
+    fi
+}
+
+# ─── NEW: process dump ───────────────────────────────────────────────────────
+_sharpdump() {
+    _forja sharpdump \
+        "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/SharpDump.exe" \
+        "SharpDump.exe"
+}
+
+# ─── NEW: SharpSecDump — SAM/LSA dump without disk touch ────────────────────
+_sharpsecdump() {
+    _forja sharpsecdump \
+        "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/SharpSecDump.exe" \
+        "SharpSecDump.exe"
+}
+
+# ─── NEW: SharpWebServer — in-memory HTTP server for serving files ───────────
+_sharpwebserver() {
+    _forja sharpwebserver \
+        "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/SharpWebServer.exe" \
+        "SharpWebServer.exe"
+}
+
+# ─── NEW: SharpChisel — Go Chisel for C# loader ─────────────────────────────
+# (alias, chisel_win already handled above)
+
+# ─── NEW: Sysinternals Suite ─────────────────────────────────────────────────
+_sysinternals() {
+    local dest="${Z1_FORJA}/sysinternals"
+    mkdir -p "${dest}"
+    _apt unzip
+    local url="https://download.sysinternals.com/files/SysinternalsSuite.zip"
+    if curl -sfL --max-time 120 -o "${dest}/SysinternalsSuite.zip" "${url}"; then
+        unzip -oq "${dest}/SysinternalsSuite.zip" -d "${dest}/" \
+            && rm -f "${dest}/SysinternalsSuite.zip" \
+            && _ok "forja: SysinternalsSuite → ${dest}" \
+            || _err "forja: sysinternals (unzip failed)"
+    else
+        _err "forja: sysinternals (download failed — Microsoft CDN may block build envs)"
+    fi
+}
+
 _deploy() {
     _linpeas
     _linenum
@@ -332,6 +427,7 @@ _deploy() {
     _linux_exploit_suggester
     _winpeas
     _powerup
+    _powerview
     _watson
     _sharpbypassuac
     _privesc_check
@@ -372,4 +468,10 @@ _deploy() {
     _plink
     _putty
     _invoke_obfuscation
+    # New tools
+    _sharprdp
+    _sharpdump
+    _sharpsecdump
+    _sharpwebserver
+    _sysinternals
 }

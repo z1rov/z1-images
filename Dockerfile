@@ -21,11 +21,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     krb5-config libkrb5-dev libldap2-dev libsasl2-dev \
     samba-common-bin \
     wireguard-tools \
+    cmake \
     && locale-gen en_US.UTF-8 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Install latest Go dynamically
 RUN set -e; \
-    GO_VERSION="1.23.5"; \
+    GO_VERSION=$(curl -fsSL "https://go.dev/VERSION?m=text" | head -1 | sed 's/^go//'); \
+    echo "[+] Installing Go ${GO_VERSION}"; \
     ARCH=$(uname -m); \
     case "${ARCH}" in \
         x86_64)  GOARCH="amd64" ;; \
@@ -70,6 +73,9 @@ RUN chmod +x /z1/install/web.sh && apt-get update && bash -c 'source /z1/install
 
 COPY install/inf.sh /z1/install/inf.sh
 RUN chmod +x /z1/install/inf.sh && apt-get update && bash -c 'source /z1/install/func.sh && source /z1/install/inf.sh && _inf' && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY install/evasion.sh /z1/install/evasion.sh
+RUN chmod +x /z1/install/evasion.sh && apt-get update && bash -c 'source /z1/install/func.sh && source /z1/install/evasion.sh && _evasion' && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY assets/ /z1/assets/
 COPY assets/bin/ /opt/tools/bin/
