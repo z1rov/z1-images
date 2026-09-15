@@ -52,7 +52,57 @@ WRAPPER
 }
 
 function _evil_winrm() {
-    gem install evil-winrm >/dev/null 2>&1 && _ok "gem: evil-winrm" || _err "gem: evil-winrm"
+    # ── Ruby gem: evil-winrm ──────────────────────────────────────────────────
+    _apt ruby-full
+    _apt ruby-dev
+    _apt build-essential
+    _apt libssl-dev
+    _apt libkrb5-dev
+    _apt krb5-config
+
+    if gem install evil-winrm --no-document >/dev/null 2>&1; then
+        local gemdir; gemdir=$(gem environment gemdir 2>/dev/null)
+        local gem_bin=""
+        [[ -x "${gemdir}/bin/evil-winrm" ]] && gem_bin="${gemdir}/bin/evil-winrm"
+        [[ -z "${gem_bin}" && -x "/usr/local/bin/evil-winrm" ]] && gem_bin="/usr/local/bin/evil-winrm"
+        [[ -z "${gem_bin}" ]] && gem_bin=$(find /var/lib/gems /usr/local/lib/ruby /usr/lib/ruby \
+                                               -name "evil-winrm" -type f 2>/dev/null | head -1)
+        if [[ -n "${gem_bin}" && -x "${gem_bin}" ]]; then
+            rm -f "${Z1_BIN}/evil-winrm"
+            cat > "${Z1_BIN}/evil-winrm" << WRAPPER
+#!/usr/bin/env bash
+exec "${gem_bin}" "\$@"
+WRAPPER
+            chmod +x "${Z1_BIN}/evil-winrm"
+            _ok "gem: evil-winrm → ${Z1_BIN}/evil-winrm"
+        else
+            _err "gem: evil-winrm (installed but binary not found)"
+        fi
+    else
+        _err "gem: evil-winrm (install failed)"
+    fi
+
+    # ── Python port: evil-winrm-py ────────────────────────────────────────────
+    # https://pypi.org/project/evil-winrm-py/
+    if pip3 install -q --no-cache-dir --break-system-packages evil-winrm-py >/dev/null 2>&1; then
+        local py_bin=""
+        py_bin=$(command -v evil-winrm-py 2>/dev/null)
+        [[ -z "${py_bin}" ]] && py_bin=$(python3 -c \
+            "import sysconfig; print(sysconfig.get_path('scripts'))" 2>/dev/null)/evil-winrm-py
+        if [[ -n "${py_bin}" && -x "${py_bin}" ]]; then
+            rm -f "${Z1_BIN}/evil-winrm-py"
+            cat > "${Z1_BIN}/evil-winrm-py" << WRAPPER
+#!/usr/bin/env bash
+exec "${py_bin}" "\$@"
+WRAPPER
+            chmod +x "${Z1_BIN}/evil-winrm-py"
+            _ok "pip: evil-winrm-py → ${Z1_BIN}/evil-winrm-py"
+        else
+            _err "pip: evil-winrm-py (installed but binary not found)"
+        fi
+    else
+        _err "pip: evil-winrm-py (install failed)"
+    fi
 }
 
 function _john() {
