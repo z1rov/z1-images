@@ -13,27 +13,40 @@ function _donut() {
     mkdir -p "${dest}"
 
     local deb_url="http://xsrv.moratelindo.io/kali/pool/main/d/donut-shellcode/donut_1.1-0kali3+b1_amd64.deb"
-    local deb_tmp="/tmp/donut.deb"
+    local deb_tmp="/tmp/donut_pkg.deb"
+    local extract_dir="/tmp/donut_extract"
 
-    # Download and install the Kali .deb
-    if wget -q --timeout=30 -O "${deb_tmp}" "${deb_url}" 2>/dev/null; then
-        if dpkg -i "${deb_tmp}" >/dev/null 2>&1 || apt-get install -fy >/dev/null 2>&1; then
+    # Download the .deb and extract the binary directly with dpkg-deb -x.
+    # This avoids any dependency resolution / dpkg -i failures since donut
+    # is a plain C binary that runs fine on Debian without extra libs.
+    if wget -q --timeout=60 -O "${deb_tmp}" "${deb_url}" 2>/dev/null; then
+        rm -rf "${extract_dir}"
+        mkdir -p "${extract_dir}"
+        if dpkg-deb -x "${deb_tmp}" "${extract_dir}" 2>/dev/null; then
             rm -f "${deb_tmp}"
-            # Find where dpkg placed the binary
-            local sys_bin
-            sys_bin=$(dpkg -L donut-shellcode 2>/dev/null | grep -E '/usr/.*/donut$' | head -1)
-            [[ -z "${sys_bin}" ]] && sys_bin=$(command -v donut 2>/dev/null)
-            if [[ -n "${sys_bin}" && -x "${sys_bin}" ]]; then
-                cp "${sys_bin}" "${dest}/donut"
+            local bin_file
+            bin_file=$(find "${extract_dir}" -type f -name "donut" 2>/dev/null | head -1)
+            if [[ -n "${bin_file}" && -f "${bin_file}" ]]; then
+                cp "${bin_file}" "${dest}/donut"
+                chmod +x "${dest}/donut"
                 ln -sf "${dest}/donut" "${Z1_BIN}/donut"
-                _ok "deb: donut → ${Z1_BIN}/donut (kali package)"
+                rm -rf "${extract_dir}"
+                if "${Z1_BIN}/donut" --help >/dev/null 2>&1 || "${Z1_BIN}/donut" -h >/dev/null 2>&1; then
+                    _ok "deb: donut → ${Z1_BIN}/donut (kali pkg, extracted)"
+                else
+                    _err "donut: binary extracted but self-test failed (wrong arch?)"
+                fi
                 return
             fi
+            _err "donut: binary not found inside .deb (unexpected package layout)"
+        else
+            _err "donut: dpkg-deb -x failed"
         fi
         rm -f "${deb_tmp}"
-        _err "deb: donut install failed, falling back to source build"
+        rm -rf "${extract_dir}"
     else
-        _err "wget: donut .deb unreachable, falling back to source build"
+        rm -f "${deb_tmp}"
+        _err "wget: donut .deb unreachable (${deb_url}), falling back to source build"
     fi
 
     # Fallback: build from source (CMake)
@@ -57,7 +70,7 @@ function _donut() {
         ln -sf "${dest}/donut" "${Z1_BIN}/donut"
         _ok "bin: donut → ${Z1_BIN}/donut (built from source)"
     else
-        _err "donut: binary not found after build"
+        _err "donut: binary not found after cmake build"
     fi
 }
 
