@@ -60,23 +60,13 @@ function _evil_winrm() {
     _apt libkrb5-dev
     _apt krb5-config
 
-    if gem install evil-winrm --no-document >/dev/null 2>&1; then
-        local gemdir; gemdir=$(gem environment gemdir 2>/dev/null)
-        local gem_bin=""
-        [[ -x "${gemdir}/bin/evil-winrm" ]] && gem_bin="${gemdir}/bin/evil-winrm"
-        [[ -z "${gem_bin}" && -x "/usr/local/bin/evil-winrm" ]] && gem_bin="/usr/local/bin/evil-winrm"
-        [[ -z "${gem_bin}" ]] && gem_bin=$(find /var/lib/gems /usr/local/lib/ruby /usr/lib/ruby \
-                                               -name "evil-winrm" -type f 2>/dev/null | head -1)
-        if [[ -n "${gem_bin}" && -x "${gem_bin}" ]]; then
-            rm -f "${Z1_BIN}/evil-winrm"
-            cat > "${Z1_BIN}/evil-winrm" << WRAPPER
-#!/usr/bin/env bash
-exec "${gem_bin}" "\$@"
-WRAPPER
-            chmod +x "${Z1_BIN}/evil-winrm"
+    # --bindir puts the gem stub directly in Z1_BIN — no need to hunt for it
+    rm -f "${Z1_BIN}/evil-winrm"
+    if gem install evil-winrm --no-document --bindir "${Z1_BIN}" >/dev/null 2>&1; then
+        if [[ -x "${Z1_BIN}/evil-winrm" ]]; then
             _ok "gem: evil-winrm → ${Z1_BIN}/evil-winrm"
         else
-            _err "gem: evil-winrm (installed but binary not found)"
+            _err "gem: evil-winrm (install ok but stub missing in ${Z1_BIN})"
         fi
     else
         _err "gem: evil-winrm (install failed)"
